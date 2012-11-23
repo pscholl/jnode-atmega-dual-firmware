@@ -36,115 +36,120 @@
 #ifndef _DESCRIPTORS_H_
 #define _DESCRIPTORS_H_
 
-	/* Includes: */
-		#include <avr/pgmspace.h>
+  /* Includes: */
+    #include <avr/pgmspace.h>
 
-		#include <LUFA/Drivers/USB/USB.h>
+    #include <LUFA/Drivers/USB/USB.h>
 
-	/* Macros: */
-		/** Endpoint number of the first CDC interface's device-to-host data IN endpoint. */
-		#define CDC1_TX_EPNUM                  1
+  /* Macros: */
+    /** Endpoint number of the first CDC interface's device-to-host data IN endpoint. */
+    #define CDC1_TX_EPNUM                  1
 
-		/** Endpoint number of the first CDC interface's host-to-device data OUT endpoint. */
-		#define CDC1_RX_EPNUM                  2
+    /** Endpoint number of the first CDC interface's host-to-device data OUT endpoint. */
+    #define CDC1_RX_EPNUM                  2
 
-		/** Endpoint number of the first CDC interface's device-to-host notification IN endpoint. */
-		#define CDC1_NOTIFICATION_EPNUM        3
-		
-		/** Size in bytes of the CDC data IN and OUT endpoints. */
-		#define CDC1_TXRX_EPSIZE                16
+    /** Endpoint number of the first CDC interface's device-to-host notification IN endpoint. */
+    #define CDC1_NOTIFICATION_EPNUM        3
+    
+    /** Size in bytes of the CDC data IN and OUT endpoints. */
+    #define CDC1_TXRX_EPSIZE                16
 
-		/** Endpoint number of the second CDC interface's device-to-host data IN endpoint. */
-		#define CDC2_TX_EPNUM                  4
+    /** Endpoint number of the second CDC interface's device-to-host data IN endpoint. */
+    #define CDC2_TX_EPNUM                  4
 
-		/** Endpoint number of the second CDC interface's host-to-device data OUT endpoint. */
-		#define CDC2_RX_EPNUM                  5
+    /** Endpoint number of the second CDC interface's host-to-device data OUT endpoint. */
+    #define CDC2_RX_EPNUM                  5
 
-		/** Endpoint number of the second CDC interface's device-to-host notification IN endpoint. */
-		#define CDC2_NOTIFICATION_EPNUM        6
+    /** Endpoint number of the second CDC interface's device-to-host notification IN endpoint. */
+    #define CDC2_NOTIFICATION_EPNUM        6
 
-		/** Size in bytes of the CDC data IN and OUT endpoints. */
-		#define CDC2_TXRX_EPSIZE               64
+    /** Size in bytes of the CDC data IN and OUT endpoints. */
+    #define CDC2_TXRX_EPSIZE               64
 
-		/** Size in bytes of the CDC device-to-host notification IN endpoints. */
-		#define CDC_NOTIFICATION_EPSIZE        8
+    /** Size in bytes of the CDC device-to-host notification IN endpoints. */
+    #define CDC_NOTIFICATION_EPSIZE        8
 
-		/** Endpoint number of the Mass Storage device-to-host data IN endpoint. */
-		#define MASS_STORAGE_IN_EPNUM          4
+    /** Endpoint number of the Mass Storage device-to-host data IN endpoint. */
+    #define MASS_STORAGE_IN_EPNUM          4
 
-		/** Endpoint number of the Mass Storage host-to-device data OUT endpoint. */
-		#define MASS_STORAGE_OUT_EPNUM         5
+    /** Endpoint number of the Mass Storage host-to-device data OUT endpoint. */
+    #define MASS_STORAGE_OUT_EPNUM         5
 
-		/** Size in bytes of the Mass Storage data endpoints. */
-		#define MASS_STORAGE_IO_EPSIZE         64
+    /** Size in bytes of the Mass Storage data endpoints. */
+    #define MASS_STORAGE_IO_EPSIZE         64
 
-	/* Type Defines: */
-		/** Type define for the device configuration descriptor structure. This must be defined in the
-		 *  application code, as the configuration descriptor contains several sub-descriptors which
-		 *  vary between devices, and which describe the device's usage to the host.
-		 */
-		typedef struct
-		{
-			USB_Descriptor_Configuration_Header_t    Config;
+  /* Type Defines: */
+    /** Type define for the device configuration descriptor structure. This must be defined in the
+     *  application code, as the configuration descriptor contains several sub-descriptors which
+     *  vary between devices, and which describe the device's usage to the host.
+     */
+    typedef struct
+    {
+      USB_Descriptor_Configuration_Header_t    Config;
 
-			// CDC Command Interface
-			USB_Descriptor_Interface_Association_t   CDC1_IAD;
-			USB_Descriptor_Interface_t               CDC1_CCI_Interface;
-			USB_CDC_Descriptor_FunctionalHeader_t    CDC1_Functional_Header;
-			USB_CDC_Descriptor_FunctionalACM_t       CDC1_Functional_ACM;
-			USB_CDC_Descriptor_FunctionalUnion_t     CDC1_Functional_Union;
-			USB_Descriptor_Endpoint_t                CDC1_ManagementEndpoint;
+      // CDC Command Interface
+      USB_Descriptor_Interface_Association_t   CDC1_IAD;
+      USB_Descriptor_Interface_t               CDC1_CCI_Interface;
+      USB_CDC_Descriptor_FunctionalHeader_t    CDC1_Functional_Header;
+      USB_CDC_Descriptor_FunctionalACM_t       CDC1_Functional_ACM;
+      USB_CDC_Descriptor_FunctionalUnion_t     CDC1_Functional_Union;
+      USB_Descriptor_Endpoint_t                CDC1_ManagementEndpoint;
 
-			// CDC Data Interface
-			USB_Descriptor_Interface_t               CDC1_DCI_Interface;
-			USB_Descriptor_Endpoint_t                CDC1_DataOutEndpoint;
-			USB_Descriptor_Endpoint_t                CDC1_DataInEndpoint;
-			
-			// RNDIS CDC Control Interface
-			USB_Descriptor_Interface_Association_t   CDC2_IAD;
-			USB_Descriptor_Interface_t               CDC2_CCI_Interface;
-			USB_CDC_Descriptor_FunctionalHeader_t    CDC2_Functional_Header;
-			USB_CDC_Descriptor_FunctionalACM_t       CDC2_Functional_ACM;
-			USB_CDC_Descriptor_FunctionalUnion_t     CDC2_Functional_Union;
-			USB_Descriptor_Endpoint_t                CDC2_ManagementEndpoint;
+      // CDC Data Interface
+      USB_Descriptor_Interface_t               CDC1_DCI_Interface;
+      USB_Descriptor_Endpoint_t                CDC1_DataOutEndpoint;
+      USB_Descriptor_Endpoint_t                CDC1_DataInEndpoint;
+      
+      // RNDIS CDC Control Interface
+      USB_Descriptor_Interface_Association_t   CDC2_IAD;
+      USB_Descriptor_Interface_t               CDC2_CCI_Interface;
+      USB_CDC_Descriptor_FunctionalHeader_t    CDC2_Functional_Header;
+      USB_CDC_Descriptor_FunctionalACM_t       CDC2_Functional_ACM;
+      USB_CDC_Descriptor_FunctionalUnion_t     CDC2_Functional_Union;
+      USB_Descriptor_Endpoint_t                CDC2_ManagementEndpoint;
 
-			// RNDIS CDC Data Interface
-			USB_Descriptor_Interface_t               CDC2_DCI_Interface;
-			USB_Descriptor_Endpoint_t                RNDIS_DataOutEndpoint;
-			USB_Descriptor_Endpoint_t                RNDIS_DataInEndpoint;
-		} USB_Descriptor_Configuration_RNDIS_t;
-		
-		typedef struct
-		{
-			USB_Descriptor_Configuration_Header_t    Config;
+      // RNDIS CDC Data Interface
+      USB_Descriptor_Interface_t               CDC2_DCI_Interface;
+      USB_Descriptor_Endpoint_t                RNDIS_DataOutEndpoint;
+      USB_Descriptor_Endpoint_t                RNDIS_DataInEndpoint;
+    } USB_Descriptor_Configuration_RNDIS_t;
+    
+    typedef struct
+    {
+      USB_Descriptor_Configuration_Header_t    Config;
 
-			// CDC Command Interface
-			USB_Descriptor_Interface_Association_t   CDC1_IAD;
-			USB_Descriptor_Interface_t               CDC1_CCI_Interface;
-			USB_CDC_Descriptor_FunctionalHeader_t    CDC1_Functional_Header;
-			USB_CDC_Descriptor_FunctionalACM_t       CDC1_Functional_ACM;
-			USB_CDC_Descriptor_FunctionalUnion_t     CDC1_Functional_Union;
-			USB_Descriptor_Endpoint_t                CDC1_ManagementEndpoint;
+      // CDC Command Interface
+      USB_Descriptor_Interface_Association_t   CDC1_IAD;
+      USB_Descriptor_Interface_t               CDC1_CCI_Interface;
+      USB_CDC_Descriptor_FunctionalHeader_t    CDC1_Functional_Header;
+      USB_CDC_Descriptor_FunctionalACM_t       CDC1_Functional_ACM;
+      USB_CDC_Descriptor_FunctionalUnion_t     CDC1_Functional_Union;
+      USB_Descriptor_Endpoint_t                CDC1_ManagementEndpoint;
 
-			// CDC Data Interface
-			USB_Descriptor_Interface_t               CDC1_DCI_Interface;
-			USB_Descriptor_Endpoint_t                CDC1_DataOutEndpoint;
-			USB_Descriptor_Endpoint_t                CDC1_DataInEndpoint;
+      // CDC Data Interface
+      USB_Descriptor_Interface_t               CDC1_DCI_Interface;
+      USB_Descriptor_Endpoint_t                CDC1_DataOutEndpoint;
+      USB_Descriptor_Endpoint_t                CDC1_DataInEndpoint;
 
-			// Mass Storage Interface
-			USB_Descriptor_Interface_t               MS_Interface;
-			USB_Descriptor_Endpoint_t                MS_DataInEndpoint;
-			USB_Descriptor_Endpoint_t                MS_DataOutEndpoint;
-		} USB_Descriptor_Configuration_MassStorage_t;
+      // Mass Storage Interface
+      USB_Descriptor_Interface_t               MS_Interface;
+      USB_Descriptor_Endpoint_t                MS_DataInEndpoint;
+      USB_Descriptor_Endpoint_t                MS_DataOutEndpoint;
+    } USB_Descriptor_Configuration_MassStorage_t;
 
-		
-	/* Function Prototypes: */
-		uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue,
-		                                    const uint8_t wIndex,
-		                                    const void** const DescriptorAddress)
-		                                    ATTR_WARN_UNUSED_RESULT ATTR_NON_NULL_PTR_ARG(3);
-											
-		void Set_Config(bool RNDIS);
+    
+  /* Function Prototypes: */
+    uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue,
+                                        const uint8_t wIndex,
+                                        const void** const DescriptorAddress)
+                                        ATTR_WARN_UNUSED_RESULT ATTR_NON_NULL_PTR_ARG(3);
 
+    extern const USB_Descriptor_Device_t PROGMEM DeviceDescriptor;
+    extern const USB_Descriptor_Configuration_RNDIS_t PROGMEM ConfigurationDescriptorRNDIS;
+    extern const USB_Descriptor_Configuration_MassStorage_t PROGMEM ConfigurationDescriptorMassStorage;
+
+    extern const USB_Descriptor_String_t PROGMEM LanguageString;
+    extern const USB_Descriptor_String_t PROGMEM ManufacturerString;
+    extern const USB_Descriptor_String_t PROGMEM ProductString;
 #endif
 
