@@ -43,25 +43,25 @@
 
   /* Macros: */
     /** Endpoint number of the first CDC interface's device-to-host data IN endpoint. */
-    #define CDC1_TX_EPNUM                  1
+    #define CDC1_TX_EPADDR                  (ENDPOINT_DIR_IN | 1)
 
     /** Endpoint number of the first CDC interface's host-to-device data OUT endpoint. */
-    #define CDC1_RX_EPNUM                  2
+    #define CDC1_RX_EPADDR                  (ENDPOINT_DIR_OUT | 2)
 
     /** Endpoint number of the first CDC interface's device-to-host notification IN endpoint. */
-    #define CDC1_NOTIFICATION_EPNUM        3
-    
+    #define CDC1_NOTIFICATION_EPADDR        (ENDPOINT_DIR_IN | 3)
+
     /** Size in bytes of the CDC data IN and OUT endpoints. */
     #define CDC1_TXRX_EPSIZE                16
 
     /** Endpoint number of the second CDC interface's device-to-host data IN endpoint. */
-    #define CDC2_TX_EPNUM                  4
+    #define CDC2_TX_EPADDR                  (ENDPOINT_DIR_IN  | 4)
 
     /** Endpoint number of the second CDC interface's host-to-device data OUT endpoint. */
-    #define CDC2_RX_EPNUM                  5
+    #define CDC2_RX_EPADDR                  (ENDPOINT_DIR_OUT | 5)
 
     /** Endpoint number of the second CDC interface's device-to-host notification IN endpoint. */
-    #define CDC2_NOTIFICATION_EPNUM        6
+    #define CDC2_NOTIFICATION_EPADDR        (ENDPOINT_DIR_IN | 6)
 
     /** Size in bytes of the CDC data IN and OUT endpoints. */
     #define CDC2_TXRX_EPSIZE               64
@@ -70,10 +70,10 @@
     #define CDC_NOTIFICATION_EPSIZE        8
 
     /** Endpoint number of the Mass Storage device-to-host data IN endpoint. */
-    #define MASS_STORAGE_IN_EPNUM          4
+    #define MASS_STORAGE_IN_EPADDR          (ENDPOINT_DIR_IN | 4)
 
     /** Endpoint number of the Mass Storage host-to-device data OUT endpoint. */
-    #define MASS_STORAGE_OUT_EPNUM         5
+    #define MASS_STORAGE_OUT_EPADDR         (ENDPOINT_DIR_OUT | 5)
 
     /** Size in bytes of the Mass Storage data endpoints. */
     #define MASS_STORAGE_IO_EPSIZE         64
@@ -99,7 +99,7 @@
       USB_Descriptor_Interface_t               CDC1_DCI_Interface;
       USB_Descriptor_Endpoint_t                CDC1_DataOutEndpoint;
       USB_Descriptor_Endpoint_t                CDC1_DataInEndpoint;
-      
+
       // RNDIS CDC Control Interface
       USB_Descriptor_Interface_Association_t   CDC2_IAD;
       USB_Descriptor_Interface_t               CDC2_CCI_Interface;

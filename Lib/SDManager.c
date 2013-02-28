@@ -58,8 +58,8 @@ static void command(uint8_t cmd, uint32_t argument)
     req[5] = 0x95;
   else if (cmd == SEND_IF_COND)
     req[5] = 0x87;
-    else
-  req[5] = 0xff;
+  else
+    req[5] = SPI_IDLE;
 
   for (i=0; i<sizeof(req); i++) 
     SPI_SendByte(req[i]);
@@ -124,25 +124,25 @@ void calc_capacity(uint8_t sdhc)
 void SDManager_Init()
 {
    _delay_ms(100);
-   
+
   uint8_t response[R7];
   bool sdhc = 0;
   bool mmc = 0;
   uint16_t i;
-  
+
   SPI_Init(SPI_SPEED_FCPU_DIV_128 | SPI_ORDER_MSB_FIRST | SPI_SCK_LEAD_RISING | SPI_SAMPLE_LEADING | SPI_MODE_MASTER);
   /* config CS */
   DDRE |= (1 << DDE6);
-  
+
   /* init cycles */
   for (i = 0; i < 100; i ++)
     SPI_SendByte(SPI_IDLE);
-    
+
   /* software reset */
   transaction(GO_IDLE_STATE, 0, R1, response);
   if (!(response[0] & 0x01))
     return;
-  
+
   /* SDHC test */
   transaction(SEND_IF_COND, 0x000001aa, R7, response);
   if (!(response[0] & 0x04) && response[3]  == 0x01 && response[4] == 0xaa)
@@ -178,12 +178,12 @@ void SDManager_Init()
   {
     address_mult = SD_DEFAULT_BLOCK_SIZE;
     transaction(SET_BLOCKLEN, SD_DEFAULT_BLOCK_SIZE, R1, response);
-  }    
+  }
 
   /* SD startup sucessful finished */
   inited = true;
   calc_capacity(sdhc);
-  SPI_Init(SPI_USE_DOUBLESPEED | SPI_ORDER_MSB_FIRST | SPI_SCK_LEAD_RISING | SPI_SAMPLE_LEADING | SPI_MODE_MASTER);
+  //SPI_Init(SPI_USE_DOUBLESPEED | SPI_ORDER_MSB_FIRST | SPI_SCK_LEAD_RISING | SPI_SAMPLE_LEADING | SPI_MODE_MASTER);
 }
 
 uint32_t SDManager_BlockCount()
@@ -215,9 +215,8 @@ void SDManager_WriteBlocks(USB_ClassInfo_MS_Device_t* const MSInterfaceInfo, con
     uint32_t argument = (BlockAddress + n) * address_mult;
 
     LOWER_CS();
-
     command(WRITE_BLOCK, argument);
-  
+
     /* wait for response */
     for (i = 0; i < SD_READ_RESPONSE_ATTEMPTS; i++)
     {
@@ -294,39 +293,33 @@ void SDManager_ReadBlocks(USB_ClassInfo_MS_Device_t* const MSInterfaceInfo, cons
 { 
   if(!inited)
     return;
-  
+
   /* Wait until endpoint is ready before continuing */
   if (Endpoint_WaitUntilReady())
     return;
 
   uint8_t temp;
-  uint8_t buffer[16];
   uint16_t i, n, j;
-  
-  for (n = 0; n < TotalBlocks; n++)
+  uint8_t buffer[SD_DEFAULT_BLOCK_SIZE];
+
+  for (n=0; n<TotalBlocks; n++)
   {
-    uint32_t argument = (BlockAddress + n) * address_mult;
+    uint32_t argument = (BlockAddress + n);// * address_mult;
 
     LOWER_CS();
+    command(READ_SINGLE_BLOCK, SwapEndian_32(argument));
 
-    command(READ_SINGLE_BLOCK, argument);
-  
-    /* wait for response */
-    for (i = 0; i < SD_READ_RESPONSE_ATTEMPTS; i++) 
-    {
-      temp = SPI_TransferByte(SPI_IDLE);
-      if (!temp)
-        break;
-    }
-    if (temp) 
-    {
+    for (i=0; i<SD_READ_RESPONSE_ATTEMPTS && SPI_TransferByte(SPI_IDLE); i++)
+      ; /* wait for 0x00 status from card */
+
+    if (i==SD_READ_RESPONSE_ATTEMPTS) {
       RAISE_CS();
       return;
     }
-  
+
     /* wait for start token */
-    for (i = 0; i < SD_TRANSACTION_ATTEMPTS; i++) 
-    { 
+    for (i=0; i<SD_TRANSACTION_ATTEMPTS; i++)
+    {
       temp = SPI_TransferByte(SPI_IDLE);
       if(temp == START_BLOCK_TOKEN || (temp > 0 && temp <= 8))
         break;
@@ -335,47 +328,30 @@ void SDManager_ReadBlocks(USB_ClassInfo_MS_Device_t* const MSInterfaceInfo, cons
     if (temp == START_BLOCK_TOKEN)
     {
       /* read requested bytes */
-      for (i = 0; i < SD_DEFAULT_BLOCK_SIZE/16; i++) 
-      {
-        if (!(Endpoint_IsReadWriteAllowed()))
-          Endpoint_ClearIN();
-        
-        for (j = 0; j < 16; j++)
-          buffer[j] = SPI_TransferByte(SPI_IDLE);
-                
-        if (Endpoint_WaitUntilReady())
-        {
-          RAISE_CS();
-          return; 
-        }
-      
-        for (j = 0; j < 16; j++)
-          Endpoint_Write_8(buffer[j]);
-      
-        if (MSInterfaceInfo->State.IsMassStoreReset)
-        {
-          RAISE_CS();
-          return;
-        }
-      }
+      for (j = 0; j < sizeof(buffer); j++)
+        buffer[j] = SPI_TransferByte(SPI_IDLE);
 
       /* crc bytes (todo: check crc) */
       SPI_TransferByte(SPI_IDLE);
       SPI_TransferByte(SPI_IDLE);
-
       RAISE_CS();
 
-      /* one pause cycle */
-      SPI_SendByte(SPI_IDLE); 
-      
-    } 
-    else 
-    {
-      RAISE_CS();
-      return;
+      for (i=0; i<SD_DEFAULT_BLOCK_SIZE; i+=16)
+      {
+        if (!(Endpoint_IsReadWriteAllowed()))
+          Endpoint_ClearIN();
+
+        for (j=0; j<16; j++)
+          Endpoint_Write_8(buffer[i*16+j]);
+
+        if (Endpoint_WaitUntilReady() || /* timeout or reset */
+            MSInterfaceInfo->State.IsMassStoreReset)
+          break;
+      }
     }
+    else
+      RAISE_CS();
   }
-  
-  if (!(Endpoint_IsReadWriteAllowed()))
-    Endpoint_ClearIN();
+
+  RAISE_CS();
 }

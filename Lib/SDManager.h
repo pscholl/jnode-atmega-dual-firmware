@@ -11,7 +11,6 @@
 
 #define SD_DEFAULT_BLOCK_SIZE 512
 
-
 void SDManager_Init(void);
 uint32_t SDManager_BlockCount(void);
 

@@ -157,7 +157,7 @@ const USB_Descriptor_Configuration_RNDIS_t PROGMEM ConfigurationDescriptorRNDIS 
 		{
 			.Header                 = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_Endpoint},
 
-			.EndpointAddress        = (ENDPOINT_DIR_IN | CDC1_NOTIFICATION_EPNUM),
+			.EndpointAddress        = (ENDPOINT_DIR_IN | CDC1_NOTIFICATION_EPADDR),
 			.Attributes             = (EP_TYPE_INTERRUPT | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
 			.EndpointSize           = CDC_NOTIFICATION_EPSIZE,
 			.PollingIntervalMS      = 0xFF
@@ -183,7 +183,7 @@ const USB_Descriptor_Configuration_RNDIS_t PROGMEM ConfigurationDescriptorRNDIS 
 		{
 			.Header                 = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_Endpoint},
 
-			.EndpointAddress        = (ENDPOINT_DIR_OUT | CDC1_RX_EPNUM),
+			.EndpointAddress        = (ENDPOINT_DIR_OUT | CDC1_RX_EPADDR),
 			.Attributes             = (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
 			.EndpointSize           = CDC1_TXRX_EPSIZE,
 			.PollingIntervalMS      = 0x01
@@ -193,7 +193,7 @@ const USB_Descriptor_Configuration_RNDIS_t PROGMEM ConfigurationDescriptorRNDIS 
 		{
 			.Header                 = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_Endpoint},
 
-			.EndpointAddress        = (ENDPOINT_DIR_IN | CDC1_TX_EPNUM),
+			.EndpointAddress        = (ENDPOINT_DIR_IN | CDC1_TX_EPADDR),
 			.Attributes             = (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
 			.EndpointSize           = CDC1_TXRX_EPSIZE,
 			.PollingIntervalMS      = 0x01
@@ -258,7 +258,7 @@ const USB_Descriptor_Configuration_RNDIS_t PROGMEM ConfigurationDescriptorRNDIS 
 		{
 			.Header                 = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_Endpoint},
 
-			.EndpointAddress        = (ENDPOINT_DIR_IN | CDC2_NOTIFICATION_EPNUM),
+			.EndpointAddress        = (ENDPOINT_DIR_IN | CDC2_NOTIFICATION_EPADDR),
 			.Attributes             = (EP_TYPE_INTERRUPT | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
 			.EndpointSize           = CDC_NOTIFICATION_EPSIZE,
 			.PollingIntervalMS      = 0xFF
@@ -284,7 +284,7 @@ const USB_Descriptor_Configuration_RNDIS_t PROGMEM ConfigurationDescriptorRNDIS 
 		{
 			.Header                 = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_Endpoint},
 
-			.EndpointAddress        = (ENDPOINT_DIR_OUT | CDC2_RX_EPNUM),
+			.EndpointAddress        = (ENDPOINT_DIR_OUT | CDC2_RX_EPADDR),
 			.Attributes             = (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
 			.EndpointSize           = CDC2_TXRX_EPSIZE,
 			.PollingIntervalMS      = 0x01
@@ -294,7 +294,7 @@ const USB_Descriptor_Configuration_RNDIS_t PROGMEM ConfigurationDescriptorRNDIS 
 		{
 			.Header                 = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_Endpoint},
 
-			.EndpointAddress        = (ENDPOINT_DIR_IN | CDC2_TX_EPNUM),
+			.EndpointAddress        = (ENDPOINT_DIR_IN | CDC2_TX_EPADDR),
 			.Attributes             = (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
 			.EndpointSize           = CDC2_TXRX_EPSIZE,
 			.PollingIntervalMS      = 0x01
@@ -377,7 +377,7 @@ const USB_Descriptor_Configuration_MassStorage_t PROGMEM ConfigurationDescriptor
 		{
 			.Header                 = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_Endpoint},
 
-			.EndpointAddress        = (ENDPOINT_DIR_IN | CDC1_NOTIFICATION_EPNUM),
+			.EndpointAddress        = (ENDPOINT_DIR_IN | CDC1_NOTIFICATION_EPADDR),
 			.Attributes             = (EP_TYPE_INTERRUPT | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
 			.EndpointSize           = CDC_NOTIFICATION_EPSIZE,
 			.PollingIntervalMS      = 0xFF
@@ -403,7 +403,7 @@ const USB_Descriptor_Configuration_MassStorage_t PROGMEM ConfigurationDescriptor
 		{
 			.Header                 = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_Endpoint},
 
-			.EndpointAddress        = (ENDPOINT_DIR_OUT | CDC1_RX_EPNUM),
+			.EndpointAddress        = (ENDPOINT_DIR_OUT | CDC1_RX_EPADDR),
 			.Attributes             = (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
 			.EndpointSize           = CDC1_TXRX_EPSIZE,
 			.PollingIntervalMS      = 0x01
@@ -413,7 +413,7 @@ const USB_Descriptor_Configuration_MassStorage_t PROGMEM ConfigurationDescriptor
 		{
 			.Header                 = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_Endpoint},
 
-			.EndpointAddress        = (ENDPOINT_DIR_IN | CDC1_TX_EPNUM),
+			.EndpointAddress        = (ENDPOINT_DIR_IN | CDC1_TX_EPADDR),
 			.Attributes             = (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
 			.EndpointSize           = CDC1_TXRX_EPSIZE,
 			.PollingIntervalMS      = 0x01
@@ -439,7 +439,7 @@ const USB_Descriptor_Configuration_MassStorage_t PROGMEM ConfigurationDescriptor
 		{
 			.Header                 = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_Endpoint},
 
-			.EndpointAddress        = (ENDPOINT_DIR_IN | MASS_STORAGE_IN_EPNUM),
+			.EndpointAddress        = (ENDPOINT_DIR_IN | MASS_STORAGE_IN_EPADDR),
 			.Attributes             = (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
 			.EndpointSize           = MASS_STORAGE_IO_EPSIZE,
 			.PollingIntervalMS      = 0x01
@@ -449,7 +449,7 @@ const USB_Descriptor_Configuration_MassStorage_t PROGMEM ConfigurationDescriptor
 		{
 			.Header                 = {.Size = sizeof(USB_Descriptor_Endpoint_t), .Type = DTYPE_Endpoint},
 
-			.EndpointAddress        = (ENDPOINT_DIR_OUT | MASS_STORAGE_OUT_EPNUM),
+			.EndpointAddress        = (ENDPOINT_DIR_OUT | MASS_STORAGE_OUT_EPADDR),
 			.Attributes             = (EP_TYPE_BULK | ENDPOINT_ATTR_NO_SYNC | ENDPOINT_USAGE_DATA),
 			.EndpointSize           = MASS_STORAGE_IO_EPSIZE,
 			.PollingIntervalMS      = 0x01

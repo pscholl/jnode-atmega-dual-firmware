@@ -88,15 +88,6 @@
 		
 		bool CALLBACK_MS_Device_SCSICommandReceived(USB_ClassInfo_MS_Device_t* const MSInterfaceInfo);
 		
-		/** change serial configuration between atmega and jennic */
-		void Serial_Config(uint32_t Baudrate, uint8_t DataBits, uint8_t StopBits, uint8_t Parity);
-		/** restart jennic and set to programming or normal mode */
-		void Jennic_Set_Mode(bool programming);
-		
-		/** handle ethernet packets from USB */
-		void Ethernet_In_Task(void);
-		/** handle incomming serial data from jennic */
-		void Jennic_In_Task(void);
 		
 
 #endif
