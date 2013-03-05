@@ -103,8 +103,8 @@ USB_ClassInfo_CDC_Device_t VirtualSerial_CDC_Interface =
 {
   .Config =
   {
-    .ControlInterfaceNumber         = 0,
-    .DataINEndpoint                 =
+    .ControlInterfaceNumber   = 0,
+    .DataINEndpoint           =
     {
       .Address                = CDC1_TX_EPADDR,
       .Size                   = CDC1_TXRX_EPSIZE,
@@ -134,8 +134,8 @@ USB_ClassInfo_RNDIS_Device_t Ethernet_RNDIS_Interface =
   .Config =
   {
 //    .ControlInterfaceNumber         = 2,
-    .ControlInterfaceNumber         = 2,
-    .DataINEndpoint                 =
+    .ControlInterfaceNumber   = 2,
+    .DataINEndpoint           =
     {
       .Address                = CDC2_TX_EPADDR,
       .Size                   = CDC2_TXRX_EPSIZE,
@@ -153,8 +153,8 @@ USB_ClassInfo_RNDIS_Device_t Ethernet_RNDIS_Interface =
       .Size                   = CDC_NOTIFICATION_EPSIZE,
       .Banks                  = 1,
     },
-    .AdapterVendorDescription       = "LUFA RNDIS Adapter",
-    .AdapterMACAddress              = {{0x02, 0x00, 0x02, 0x00, 0x02, 0x00}},
+    .AdapterVendorDescription = "LUFA RNDIS Adapter",
+    .AdapterMACAddress        = {{0x00, 0x15, 0x8d, 0x14, 0x59, 0x0c}},
   },
 };
 
@@ -166,20 +166,20 @@ USB_ClassInfo_MS_Device_t Disk_MS_Interface =
 {
   .Config =
   {
-    .InterfaceNumber                = 2,
-    .DataINEndpoint                 =
+    .InterfaceNumber          = 2,
+    .DataINEndpoint           =
     {
       .Address                = MASS_STORAGE_IN_EPADDR,
       .Size                   = MASS_STORAGE_IO_EPSIZE,
       .Banks                  = 1,
     },
-    .DataOUTEndpoint                =
+    .DataOUTEndpoint          =
     {
       .Address                = MASS_STORAGE_OUT_EPADDR,
       .Size                   = MASS_STORAGE_IO_EPSIZE,
       .Banks                  = 1,
     },
-    .TotalLUNs                      = 1,
+    .TotalLUNs                = 1,
   },
 };
 
@@ -201,6 +201,7 @@ int main(void)
   sei();
 
   /* restart jennic and set to normal mode. XXX needs serial line ops */
+  Serial_Config(1000000, 8, CDC_LINEENCODING_OneStopBit, CDC_PARITY_None);
   Jennic_Set_Mode(false);
 
   for (;;)
@@ -256,8 +257,8 @@ int main(void)
       MS_Device_USBTask(&Disk_MS_Interface);
     }
 
-    while ( (ringbuf_elements(&USBtoUSART_Buffer) > 0) && (UCSR1A & (1 << UDRE1)) )
-      UDR1 = ringbuf_get(&USBtoUSART_Buffer);
+    if ( ringbuf_elements(&USBtoUSART_Buffer) && !(UCSR1B & (1 << UDRIE1)) )
+      UCSR1B |= (1 << UDRIE1);
   }
 }
 
@@ -365,11 +366,19 @@ void EVENT_USB_Device_ControlRequest(void)
 /** ISR to manage the reception of data from the serial port, placing received bytes into a circular buffer
  *  for later transmission to the host.
  */
+ISR(USART1_UDRE_vect, ISR_BLOCK)
+{
+  if (ringbuf_elements(&USBtoUSART_Buffer))
+    UDR1 = ringbuf_get(&USBtoUSART_Buffer);
+  else
+    UCSR1B &= ~(1 << UDRIE1);
+}
+
 ISR(USART1_RX_vect, ISR_BLOCK)
 {
   uint8_t ReceivedByte;
 
-  if (ringbuf_elements(&USARTtoUSB_Buffer) >= ringbuf_size(&USARTtoUSB_Buffer) )
+  if (ringbuf_elements(&USARTtoUSB_Buffer) >= ringbuf_size(&USARTtoUSB_Buffer) - 1 )
     return;
 
   ReceivedByte = UDR1;
@@ -384,7 +393,7 @@ ISR(USART1_RX_vect, ISR_BLOCK)
  *  \param[in] CDCInterfaceInfo  Pointer to the CDC class interface configuration structure being referenced
  */
 void EVENT_CDC_Device_LineEncodingChanged(USB_ClassInfo_CDC_Device_t* const CDCInterfaceInfo)
-{
+ {
   /* only allowed in programming mode through programmer (jenprog) */
   if (jennic_in_programming_mode)
   {
@@ -506,32 +515,31 @@ void Jennic_Set_Mode(bool programming)
   }
 
   /* search for mac, if found read mac-address */
-  //while (!gotmac) {
-  //  while (j<64000 && RingBuffer_IsEmpty(&USARTtoUSB_Buffer))
-  //    j++;
+  while (!gotmac) {
+    while (j<64000 && ringbuf_size(&USARTtoUSB_Buffer))
+      j++;
 
-  //  if (j==64000)
-  //    return;
+    if (j==64000)
+      return;
 
-  //  c = RingBuffer_Remove(&USARTtoUSB_Buffer);
-  //  if (ptr==mackey+sizeof(mackey)) {
-  //    gotmac = i==7; /* here we break */
-  //    macaddr[i++] = c;
-  //  }
-  //  else if (c==*ptr) ptr++;
-  //  else         ptr=mackey;
-  //}
+    c = ringbuf_get(&USARTtoUSB_Buffer);
+    if (ptr==mackey+sizeof(mackey)) {
+      gotmac = i==7; /* here we break */
+      macaddr[i++] = c;
+    }
+    else if (c==*ptr) ptr++;
+    else         ptr=mackey;
+  }
 
-
-  return;
-
-  /* make ethernet mac addr from ieee802.15.4 macaddr */
-  Ethernet_RNDIS_Interface.Config.AdapterMACAddress.Octets[0] = 0x00;
-  Ethernet_RNDIS_Interface.Config.AdapterMACAddress.Octets[1] = macaddr[1];
-  Ethernet_RNDIS_Interface.Config.AdapterMACAddress.Octets[2] = macaddr[2];
-  Ethernet_RNDIS_Interface.Config.AdapterMACAddress.Octets[3] = macaddr[5];
-  Ethernet_RNDIS_Interface.Config.AdapterMACAddress.Octets[4] = macaddr[6];
-  Ethernet_RNDIS_Interface.Config.AdapterMACAddress.Octets[5] = macaddr[7];
+  if (gotmac) {
+    /* make ethernet mac addr from ieee802.15.4 macaddr */
+    Ethernet_RNDIS_Interface.Config.AdapterMACAddress.Octets[0] = 0x00;
+    Ethernet_RNDIS_Interface.Config.AdapterMACAddress.Octets[1] = macaddr[1];
+    Ethernet_RNDIS_Interface.Config.AdapterMACAddress.Octets[2] = macaddr[2];
+    Ethernet_RNDIS_Interface.Config.AdapterMACAddress.Octets[3] = macaddr[5];
+    Ethernet_RNDIS_Interface.Config.AdapterMACAddress.Octets[4] = macaddr[6];
+    Ethernet_RNDIS_Interface.Config.AdapterMACAddress.Octets[5] = macaddr[7];
+  }
 }
 
 void CDC_In_Task()
@@ -544,9 +552,8 @@ void CDC_In_Task()
   }
 }
 
-/** handle ethernet packets from USB */
 void Jennic_In_Task()
-{
+{ // XXX better buffering for CDC packets
   size_t i;
 
   Endpoint_SelectEndpoint(VirtualSerial_CDC_Interface.Config.DataINEndpoint.Address);
@@ -554,8 +561,7 @@ void Jennic_In_Task()
     return;
 
   /* Read bytes from the USART receive buffer and create ethernet frame or send with CDC */
-  for( i=0; i < VirtualSerial_CDC_Interface.Config.DataINEndpoint.Size &&
-            ringbuf_elements(&USARTtoUSB_Buffer) > 0; i++)
+  while (ringbuf_elements(&USARTtoUSB_Buffer))
   {
     static uint8_t slip_state = SLIP_STATE_RUBBISH;
     uint8_t byte = ringbuf_get(&USARTtoUSB_Buffer);
@@ -589,12 +595,12 @@ void Jennic_In_Task()
             FrameOUT.Data[FrameOUT.Length++] = SLIP_END;
           else if (byte == SLIP_ESC_ESC)
             FrameOUT.Data[FrameOUT.Length++] = SLIP_ESC;
-          else 
+          else
             slip_state = SLIP_STATE_RUBBISH;
           break;
 
         case SLIP_STATE_OK:
-          if (byte == SLIP_ESC) 
+          if (byte == SLIP_ESC)
             slip_state = SLIP_STATE_ESC;
           else if (byte == SLIP_END)
           {
@@ -613,86 +619,80 @@ void Jennic_In_Task()
   }
 }
 
-/** handle incomming serial data from jennic */
 bool Ethernet_In_Task()
 {
-  static uint8_t buffer[CDC2_TXRX_EPSIZE];
-  static uint8_t buffer_pointer = 0;
   static uint16_t packet_length = 0;
+  static uint16_t read_length = 0;
 
-  if (packet_length == 0)
-  {
-    if (ringbuf_elements(&USBtoUSART_Buffer) >= ringbuf_size(&USBtoUSART_Buffer)-2)
-      return false; /* make sure there is space in the tx buffer */
+  if (ringbuf_elements(&USBtoUSART_Buffer) >=
+      (ringbuf_size(&USBtoUSART_Buffer)-2) )
+    return packet_length != 0;
 
-    /* no active packet -> check for new */
-    if (RNDIS_Device_IsPacketReceived(&Ethernet_RNDIS_Interface))
-    {
-      /* recieve packet header */
-      Endpoint_SelectEndpoint(Ethernet_RNDIS_Interface.Config.DataOUTEndpoint.Address);
-      RNDIS_Packet_Message_t RNDISPacketHeader;
-      Endpoint_Read_Stream_LE(&RNDISPacketHeader, sizeof(RNDIS_Packet_Message_t), NULL);
+  while (packet_length != 0)
+  { /* send current packet */
+    uint8_t byte;
 
-      if (le32_to_cpu(RNDISPacketHeader.DataLength) > ETHERNET_FRAME_SIZE_MAX)
-      {
-        Endpoint_StallTransaction();
-        return false;
-      }
+    Endpoint_SelectEndpoint(Ethernet_RNDIS_Interface.Config.DataOUTEndpoint.Address);
+    byte = Endpoint_Read_8();
 
-      /* "CDC2_TXRX_EPSIZE - sizeof(RNDIS_Packet_Message_t)" are still to be read. They're read in the end of buffer so that "if (buffer_pointer == CDC2_TXRX_EPSIZE)" will work */
-      Endpoint_Read_Stream_LE(&buffer[sizeof(RNDIS_Packet_Message_t)], CDC2_TXRX_EPSIZE - sizeof(RNDIS_Packet_Message_t), NULL);
-      buffer_pointer = sizeof(RNDIS_Packet_Message_t);
-      packet_length = (uint16_t)le32_to_cpu(RNDISPacketHeader.DataLength);
-      /* start slip package */
-      ringbuf_put(&USBtoUSART_Buffer, SLIP_END);
+    if (read_length++ == 64) {
+      Endpoint_ClearOUT();
+      read_length = 0;
       return true;
     }
-    return false;
-  }
-  else
-  {
-    if (ringbuf_elements(&USBtoUSART_Buffer) >= ringbuf_size(&USBtoUSART_Buffer)-2)
-      return true; /* make sure there is space in the tx buffer */
 
-    if (buffer_pointer == CDC2_TXRX_EPSIZE)
-    {
-      /* buffer empty read more bytes */
-      Endpoint_SelectEndpoint(Ethernet_RNDIS_Interface.Config.DataOUTEndpoint.Address);
-      if (packet_length < CDC2_TXRX_EPSIZE)
-        Endpoint_Read_Stream_LE(buffer, packet_length, NULL);
-      else
-        Endpoint_Read_Stream_LE(buffer, CDC2_TXRX_EPSIZE, NULL);
-      buffer_pointer = 0;
-    }
-
-    /* send bytes and handle special bytes */
-    if (buffer[buffer_pointer] == SLIP_END)
-    {
+    switch(byte) {
+    case SLIP_END:
       ringbuf_put(&USBtoUSART_Buffer, SLIP_ESC);
       ringbuf_put(&USBtoUSART_Buffer, SLIP_ESC_END);
-    }
-    else if (buffer[buffer_pointer] == SLIP_ESC)
-    {
+      break;
+    case SLIP_ESC:
       ringbuf_put(&USBtoUSART_Buffer, SLIP_ESC);
       ringbuf_put(&USBtoUSART_Buffer, SLIP_ESC_ESC);
+      break;
+    default:
+      ringbuf_put(&USBtoUSART_Buffer, byte);
     }
-    else
-      ringbuf_put(&USBtoUSART_Buffer, buffer[buffer_pointer]);
 
-    buffer_pointer++;
     packet_length--;
 
     if (packet_length == 0)
-    {
-      /* packet finished */
+    { /* packet finished */
       ringbuf_put(&USBtoUSART_Buffer, SLIP_END);
-      buffer_pointer = 0;
       Endpoint_ClearOUT();
       return false;
     }
-    else
-      return true;
   }
+
+  if (packet_length == 0 &&
+      RNDIS_Device_IsPacketReceived(&Ethernet_RNDIS_Interface))
+  { /* is there a new packet */
+    RNDIS_Packet_Message_t RNDISPacketHeader;
+
+    if (Endpoint_Read_Stream_LE(&RNDISPacketHeader,
+        sizeof(RNDIS_Packet_Message_t), NULL) )
+      return false;
+
+    if (le32_to_cpu(RNDISPacketHeader.MessageType) != REMOTE_NDIS_PACKET_MSG)
+    {
+      Endpoint_ClearOUT();
+      return false;
+    }
+
+    if (le32_to_cpu(RNDISPacketHeader.DataLength) > ETHERNET_FRAME_SIZE_MAX)
+    {
+      Endpoint_StallTransaction();
+      return false;
+    }
+    else
+    { /* start slip packet */
+      packet_length = (uint16_t)le32_to_cpu(RNDISPacketHeader.DataLength);
+      read_length   = sizeof(RNDIS_Packet_Message_t);
+      ringbuf_put(&USBtoUSART_Buffer, SLIP_END);
+    }
+  }
+
+  return packet_length!=0;
 }
 
 uint16_t CALLBACK_USB_GetDescriptor(const uint16_t wValue,
